@@ -1,10 +1,10 @@
-## 1. Git规范
+# 1. Git规范
 
-### 1.1 分支规范
+## 1.1 分支规范
 
 #### 1. 分支图
 
-![matrixone_glow](imgs/Git%E8%A7%84%E8%8C%83/matrixone_glow.png)
+
 
 #### 2. 分支构成
 
@@ -19,15 +19,15 @@
 - matrixone 分支：一个大版本对应一个matrixone分支。
 - release分支：一个大版本对应一个hotfix分支。例如hotfix_v0.1.0
 
-### 1.2 issue 规范
+## 1.2 issue 规范
 
-### 1.3 release 规范
+## 1.3 release 规范
 
-### 1.4 commit 规范
+## 1.4 commit 规范
 
-### 1.5 代码 review
+## 1.5 代码 review
 
-### 1.6 PR 规范
+## 1.6 PR 规范
 
 #### 1. 标题规范
 
