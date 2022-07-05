@@ -2,7 +2,7 @@
 
 1. 生成token（需要repo和project完全权限）
 
-   路径：Settings $\rightarrow$ Developer settings $\rightarrow$ Personal access tokens
+   路径：Settings $\rightarrow$ Developer settings $\rightarrow$  Personal access tokens
 
    或直接使用链接：https://github.com/settings/tokens
 
