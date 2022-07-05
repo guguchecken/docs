@@ -22,4 +22,4 @@
 
 3. 填写yaml文件
 
-   PR链接：https://github.com/matrixorigin/matrixone/pull/3765（）
+   PR链接：https://github.com/matrixorigin/matrixone/pull/3765
