@@ -32,7 +32,9 @@
 - 【必须】应采用有意义，简短的文件名；若是缩写，应是程序员广泛熟知的。
 - 【必须】文件名应该使用小写，并且使用下划线分割各个单词。
 
-#### 结构体命名
+#### 类型命名
+
+##### 结构体命名
 
 - 【必须】采用驼峰命名法，首字母根据访问控制规则采用大写或者小写。
 
@@ -53,9 +55,8 @@
   }
   ~~~
 
-  
 
-#### 接口命名
+##### 接口命名
 
 - 【推荐】命名规则基本保持和结构体命名规则一致。
 
@@ -118,8 +119,8 @@
 
 #### 函数命名
 
-- 函数名必须遵循驼峰式，首字母根据访问控制决定使用大写或小写。
-- 代码生成工具自动生成的代码可排除此规则（如协议生成文件 xxx.pb.go , gotests 自动生成文件 xxx_test.go 里面的下划线）。
+- 【必须】函数名必须遵循驼峰式，首字母根据访问控制决定使用大写或小写。代码生成工具自动生成的代码可排除此规则（如协议生成文件 xxx.pb.go , gotests 自动生成文件 xxx_test.go 里面的下划线）。
+- 【推荐】在短函数中应该使用命名返回值，以提高代码的简洁与清晰；但是在长函数以及返回值是slice和map的函数中，不应该使用命名返回值，应该在函数体内部进行显式定义。
 
 #### 泛型命名
 
@@ -140,7 +141,7 @@
 
 - 【必须】代码必须使用`gofmt`工具进行格式化
 
-- 【必须】一个代码文件不应超过800行，一个函数长度不应超过80行
+- 【推荐】一个代码文件不应超过800行，一个函数长度不应超过80行
 
 - 【必须】一行代码不能超过`120`列；若超过，则应使用合理的方式换行。例外场景不受此约束：
 
@@ -162,7 +163,7 @@
   }
   ~~~
 
-- 【必须】运算符与操作数之间要留空格；作为输入参数或者数组下标时，运算符和操作数之间不需要空格，紧凑展示。（遵循gofmt的逻辑）
+- 【必须】运算符与操作数之间要留空格；作为输入参数或者数组下标时，运算符和操作数之间不需要空格，紧凑展示。（遵循`gofmt`的逻辑）
 
   ~~~go
   //good
@@ -171,7 +172,7 @@
   fmt.Printf("%f\n", v+1)
   ~~~
 
-- 【必须】采用惰性换行，换行前应尽可能占满当行不留空位
+- 【推荐】采用惰性换行，换行前应尽可能占满当行不留空位
 
   ~~~go
   // Bad
@@ -179,10 +180,9 @@
   0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55,89, 144, 233)
   
   // Good
-  fmt.Printf("%v %v %v %v %v %v %v %v %v %v %v %v %v %v\n", 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55,
-  89, 144, 233)
+  fmt.Printf("%v %v %v %v %v %v %v %v %v %v %v %v %v %v\n", 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233)
   ~~~
-
+  
 - 【必须】使用原始字符串文字避免转义
 
   ~~~go
@@ -419,33 +419,7 @@
 
 #### defer
 
-- 【必须】对于文件或者锁，应使用defer进行资源的释放
-
-  ~~~go
-  var mu sync.Mutex
-  var a int = 10
-  //bad
-  mu.Lock()
-  if a < 10 {
-      mu.Unlock()
-      return a
-  }
-  
-  a++
-  mu.Unlock()
-  return a
-  
-  //good
-  mu.Lock()
-  defer mu.Unlock()
-  
-  if a < 10 {
-      return a
-  }
-  
-  a++
-  return a
-  ~~~
+- 【推荐】对于文件或者锁，应使用defer进行资源的释放；若需要在方法结束前释放资源，则可手动释放
 
 - 【推荐】应尽量避免在for循环中使用defer
 
@@ -455,7 +429,7 @@
 
 ### error
 
-- 【必须】如果error作为函数的返回值，则必须对error进行显式处理或者使用空白标识符忽略。对于`defer xx.Close()`可以不用显式处理。
+- 【必须】如果error作为函数的返回值，则必须对error进行显式处理。对于`defer xx.Close()`可以不用显式处理。
 
 - 【必须】error 作为函数返回值且有多个返回值的时候，error 必须是最后一个参数。
 
@@ -525,7 +499,8 @@
 
 - 【必须】应尽量避免panic。当error发生时，应该向上游调用者返回error，容许调用者对error进行检测和处理；当错误不能够处理的时候再进行panic
 - 【推荐】不应该恢复panic，除非在少数已经定义好的地方
-- 【必须】应阻止运行时panic的发生。若运行时发生panic，应将其转换为error
+- 【必须】应阻止运行时严重错误的发生。若运行时发生严重错误，应尽力将其转换为error进行处理
+- 【推荐】当函数返回值或者接收者为指针类型时，应该对其进行是否为nil判断，防止产生panic
 
 ## 3. 并发处理
 
@@ -533,15 +508,15 @@
 
 - 【必须】业务开发中应根据实际情况限制Goroutine数量
 
-- 【必须】`for range`遍历时，若在循环体中使用并发，需要将`key`或者`value`当作参数传入
+- 【必须】`for range`遍历时，若在循环体中使用并发，需要将`key`或者`value`当作参数传入或在循环体内初始化一个同名变量
 
   ~~~go
   var arr []int= []int{1,2,3}
   
-  //bad
+  //bad 这种方式一般都会产生bug，不应该使用
   for _,value := range arr {
       go func(){
-          fmt.Println("value is ",value) 
+          fmt.Println("value is ",value)
       }()
   }
   
@@ -550,6 +525,13 @@
       go func(value){
           fmt.Println("value is ",num) 
       }(num int)
+  }
+  //or
+  for _,value := range arr {
+      value := value
+      go func(){
+          fmt.Println("value is ",value) 
+      }()
   }
   ~~~
 
@@ -571,7 +553,13 @@
   c := make(chan int)
   ~~~
 
-  
+- 【推荐】对于channel的使用，划分角色为sender和receiver，channel只能由sender进行关闭。按照不同情况推荐：
+
+  - 一个sender，N个receiver：channel应只能由sender进行关闭
+  - N个sender，一个receiver：创建一个信号channel，由receiver通知sender停止发送消息
+  - N个sender，M个receiver：应该创建一个一个主持人来进行channel的关闭。
+  - 更多变体详见[文章](https://go101.org/article/channel-closing.html)
+
 
 ### Mutex
 
@@ -587,10 +575,10 @@
   mu.Lock()
   ~~~
 
-- 【必须】不应该把Mutex嵌入到另外一个结构体中，即使该结构体不会被导出。
+- 【推荐】不应该把Mutex嵌入到另外一个结构体中，即使该结构体不会被导出。
 
   ~~~go
-  // bad
+  // bad, but some open source projects will use
   type sMap struct {
     sync.Mutex
     data map[string]string
@@ -608,7 +596,7 @@
 ### Context
 
 - 【推荐】推荐以参数的形式传递Context
-- 【推荐】若以Context做i为函数的参数，应该把Context作为第一个参数
+- 【推荐】若以Context做为函数的参数，应该把Context作为第一个参数
 - 【推荐】给一个函数方法传递Context的时候，不要传递nil，如果不知道传递什么，就使用context.TODO
 - 【推荐】函数调用链必须传播Context，实现完整链路上的控制。
 
@@ -618,7 +606,7 @@
 
 - 【必须】单元测试文件名命名规范为 example_test.go。
 
-- 【必须】单测文件行数限制是普通文件的 2 倍（1600 行）。单测函数行数限制也是普通函数的2倍（160行）。其他规范细节和普通文件保持一致。
+- 【推荐】单测文件行数限制是普通文件的 2 倍（1600 行）。单测函数行数限制也是普通函数的2倍（160行）。其他规范细节和普通文件保持一致。
 
 - 【推荐】由于单测文件内的函数都是不对外的，所有可导出函数可以没有注释，但是结构体定义时尽量不要导出。
 
@@ -914,6 +902,496 @@
 
 ### 开发环境配置
 
-此处初步规划填写VS Code Go开发环境配置
+#### Golang环境配置（Linux）
 
-### 常用工具
+1. 下载Go安装包
+
+   ~~~bash
+   #此处以最新的1.18.3为例
+   wget https://dl.google.com/go/go1.18.3.linux-amd64.tar.gz
+   ~~~
+
+2. 移除之前安装的go，并且解压缩此次下载安装包
+
+   ~~~bash
+   #移除之前的安装版本，若之前并未安装则可跳过
+   sudo rm -rf /usr/local/go
+   
+   #解压缩Go安装包到指定目录
+   sudo tar -zxvf go1.18.3.linux-amd64.tar.gz -C /usr/local
+   ~~~
+
+3. 添加环境变量
+
+   ~~~bash
+   #推荐修改/etc/profile,这样所有用户均可见
+   sudo vim /etc/profile
+   
+   #插入以下内容
+   # Go setting
+   export GOROOT=/usr/local/go
+   export GOPATH=/home/user/go
+   export GOPROXY=https://goproxy.cn,direct
+   export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+   
+   #vim编辑完成后，对profile文件进行编译使其立即生效
+   source /etc/profile
+   ~~~
+
+4. 测试安装是否成功
+
+   ~~~go
+   #查看是否有结果
+   go env
+   
+   #安装gcc，因为delve依赖于gcc,此处以Ubuntu为例
+   sudo apt install -y build-essential
+   ~~~
+
+#### VS Code
+
+1. 前往官网下载安装包
+
+   ~~~bash
+   https://code.visualstudio.com/
+   ~~~
+
+2. 选择相应的平台进行下载
+
+3. 下载完成后双击安装即可
+
+4. 下载完成后在Extension中下载`Go`插件即可
+
+5. 插件安装完成后，`control+shift+p`，然后搜索`Go:Install/Update Tools`，全选所有选项，OK
+
+#### GoLand
+
+1. 下载GoLand安装包
+
+   ~~~bash
+   wget https://download.jetbrains.com.cn/go/goland-2022.1.3.tar.gz
+   ~~~
+
+2. 解压缩安装包到指定目录并重命名
+
+   ~~~bash
+   sudo tar -zxvf goland-2022.1.3.tar.gz -C /usr/local/
+   
+   sudo mv GoLand-2022.1.3 GoLand
+   ~~~
+
+3. 进入到GoLand/bin目录下，./goland.sh 启动GoLand
+
+4. 创建项目之后需要设置GOROOT以及GOPATH。路径： `Settings`$\rightarrow$ `Go`
+
+#### Vim
+
+1. 安装Vim（Ubuntu为例）
+
+   ~~~bash
+   sudo apt install -y vim
+   ~~~
+
+2. 创建.vimrc文件
+
+   ~~~bash
+   touch .vimrc
+   ~~~
+
+3. 进行简单配置
+
+   ~~~bash
+   
+   "==============================================================================
+   " vim 内置配置 
+   "==============================================================================
+   
+   " 设置 vimrc 修改保存后立刻生效，不用在重新打开
+   " 建议配置完成后将这个关闭
+   autocmd BufWritePost $MYVIMRC source $MYVIMRC
+   
+   " 关闭兼容模式
+   set nocompatible
+   
+   set nu " 设置行号
+   set cursorline "突出显示当前行
+   " set cursorcolumn " 突出显示当前列
+   set showmatch " 显示括号匹配
+   
+   " tab 缩进
+   set tabstop=4 " 设置Tab长度为4空格
+   set shiftwidth=4 " 设置自动缩进长度为4空格
+   set autoindent " 继承前一行的缩进方式，适用于多行注释
+   
+   " 定义快捷键的前缀，即<Leader>
+   let mapleader=";" 
+   
+   " ==== 系统剪切板复制粘贴 ====
+   " v 模式下复制内容到系统剪切板
+   vmap <Leader>c "+yy
+   " n 模式下复制一行到系统剪切板
+   nmap <Leader>c "+yy
+   " n 模式下粘贴系统剪切板的内容
+   nmap <Leader>v "+p
+   
+   " 开启实时搜索
+   set incsearch
+   " 搜索时大小写不敏感
+   set ignorecase
+   syntax enable
+   syntax on                    " 开启文件类型侦测
+   filetype plugin indent on    " 启用自动补全
+   
+   " 退出插入模式指定类型的文件自动保存
+   au InsertLeave *.go,*.sh,*.php write
+   ~~~
+
+4. 安装vim-plug插件
+
+   ~~~bash
+   curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+       https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+   ~~~
+
+5. 添加开发所需插件
+
+   ~~~bash
+   " 插件开始的位置
+   call plug#begin('~/.vim/plugged')
+   
+   " Shorthand notation; fetches https://github.com/junegunn/vim-easy-align
+   " 可以快速对齐的插件
+   Plug 'junegunn/vim-easy-align'
+   
+   " 用来提供一个导航目录的侧边栏
+   Plug 'scrooloose/nerdtree'
+   
+   " 可以使 nerdtree 的 tab 更加友好些
+   Plug 'jistr/vim-nerdtree-tabs'
+   
+   
+   " 查看当前代码文件中的变量和函数列表的插件，
+   " 可以切换和跳转到代码中对应的变量和函数的位置
+   Plug 'majutsushi/tagbar'
+   
+   " 自动补全括号的插件，包括小括号，中括号，以及花括号
+   Plug 'jiangmiao/auto-pairs'
+   
+   " Vim状态栏插件，包括显示行号，列号，文件类型，文件名，以及Git状态
+   Plug 'vim-airline/vim-airline'
+   
+   
+   " 代码自动完成，安装完插件还需要额外配置才可以使用
+   Plug 'Valloric/YouCompleteMe'
+   
+   " 下面两个插件要配合使用，可以自动生成代码块
+   Plug 'SirVer/ultisnips'
+   Plug 'honza/vim-snippets'
+   
+   " 可以在 vim 中使用 tab 补全
+   "Plug 'vim-scripts/SuperTab'
+   
+   " 可以在 vim 中自动完成
+   "Plug 'Shougo/neocomplete.vim'
+   
+   
+   " 配色方案
+   " colorscheme neodark
+   Plug 'KeitaNakamura/neodark.vim'
+   " colorscheme monokai
+   Plug 'crusoexia/vim-monokai'
+   " colorscheme github 
+   Plug 'acarapetis/vim-colors-github'
+   " colorscheme one 
+   Plug 'rakr/vim-one'
+   
+   " go 主要插件
+   Plug 'fatih/vim-go', { 'tag': '*' }
+   " go 中的代码追踪，输入 gd 就可以自动跳转
+   Plug 'dgryski/vim-godef'
+   
+   " markdown 插件
+   Plug 'iamcco/mathjax-support-for-mkdp'
+   Plug 'iamcco/markdown-preview.vim'
+   
+   " 插件结束的位置，插件全部放在此行上面
+   call plug#end()
+   ~~~
+
+   然后输入 `:w` 保存配置，再输入 `:PlugInstall`进行插件的安装
+
+   如果想要删除插件，只要将不需要的插件注释或者删除，执行 `:PlugClean` 就可以自动清理了
+
+6. 插件配置
+
+   - vim-go: 需在vim中执行 `:GoInstallBinaries`
+
+   - 安装tagbar依赖（ctags）
+
+     ~~~bash
+     sudo apt install exuberant-ctags
+     ~~~
+
+   - YouCompleteMe: 
+
+     1. 安装依赖关系: 
+
+        ~~~bash
+        sudo apt install build-essential cmake python3-dev
+        #若报错，按照报错提示进行处理即可
+        ~~~
+     
+     2. 编译
+     
+        ~~~bash
+        cd ~/.vim/plugged/YouCompleteMe
+        # 编译，并加入 go 的支持
+        python3 install.py --go-completer 
+        ~~~
+     
+     3. 配置和 `SirVer/ultisnips` 冲突的快捷键
+     
+        ~~~bash
+        let g:ycm_key_list_select_completion = ['<C-n>', '<space>']
+        let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>']
+        let g:SuperTabDefaultCompletionType = '<C-n>'
+        
+        " better key bindings for UltiSnipsExpandTrigger
+        let g:UltiSnipsExpandTrigger = "<tab>"
+        let g:UltiSnipsJumpForwardTrigger = "<tab>"
+        let g:UltiSnipsJumpBackwardTrigger = "<s-tab>"
+        ~~~
+
+7. 完整的配置文件
+
+   ~~~bash
+   
+   "==============================================================================
+   " vim 内置配置 
+   "==============================================================================
+   
+   " 设置 vimrc 修改保存后立刻生效，不用在重新打开
+   " 建议配置完成后将这个关闭，否则配置多了之后会很卡
+   " autocmd BufWritePost $MYVIMRC source $MYVIMRC
+   
+   " 关闭兼容模式
+   set nocompatible
+   
+   set nu " 设置行号
+   set cursorline "突出显示当前行
+   " set cursorcolumn " 突出显示当前列
+   set showmatch " 显示括号匹配
+   
+   " tab 缩进
+   set tabstop=4 " 设置Tab长度为4空格
+   set shiftwidth=4 " 设置自动缩进长度为4空格
+   set autoindent " 继承前一行的缩进方式，适用于多行注释
+   
+   " 定义快捷键的前缀，即<Leader>
+   let mapleader=";" 
+   
+   " ==== 系统剪切板复制粘贴 ====
+   " v 模式下复制内容到系统剪切板
+   vmap <Leader>c "+yy
+   " n 模式下复制一行到系统剪切板
+   nmap <Leader>c "+yy
+   " n 模式下粘贴系统剪切板的内容
+   nmap <Leader>v "+p
+   
+   " 开启实时搜索
+   set incsearch
+   " 搜索时大小写不敏感
+   set ignorecase
+   syntax enable
+   syntax on                    " 开启文件类型侦测
+   filetype plugin indent on    " 启用自动补全
+   
+   " 退出插入模式指定类型的文件自动保存
+   au InsertLeave *.go,*.sh,*.php write
+   
+   "==============================================================================
+   " 插件配置 
+   "==============================================================================
+   
+   " 插件开始的位置
+   call plug#begin('~/.vim/plugged')
+   
+   " Shorthand notation; fetches https://github.com/junegunn/vim-easy-align
+   " 可以快速对齐的插件
+   Plug 'junegunn/vim-easy-align'
+   
+   " 用来提供一个导航目录的侧边栏
+   Plug 'scrooloose/nerdtree'
+   
+   " 可以使 nerdtree Tab 标签的名称更友好些
+   Plug 'jistr/vim-nerdtree-tabs'
+   
+   " 可以在导航目录中看到 git 版本信息
+   Plug 'Xuyuanp/nerdtree-git-plugin'
+   
+   " 查看当前代码文件中的变量和函数列表的插件，
+   " 可以切换和跳转到代码中对应的变量和函数的位置
+   Plug 'majutsushi/tagbar'
+   
+   " 自动补全括号的插件，包括小括号，中括号，以及花括号
+   Plug 'jiangmiao/auto-pairs'
+   
+   " Vim状态栏插件，包括显示行号，列号，文件类型，文件名，以及Git状态
+   Plug 'vim-airline/vim-airline'
+   
+   " 代码自动完成，安装完插件还需要额外配置才可以使用
+   Plug 'Valloric/YouCompleteMe'
+   
+   " 下面两个插件要配合使用，可以自动生成代码块
+   Plug 'SirVer/ultisnips'
+   Plug 'honza/vim-snippets'
+   
+   " 配色方案
+   " colorscheme neodark
+   Plug 'KeitaNakamura/neodark.vim'
+   " colorscheme monokai
+   Plug 'crusoexia/vim-monokai'
+   " colorscheme github 
+   Plug 'acarapetis/vim-colors-github'
+   " colorscheme one 
+   Plug 'rakr/vim-one'
+   
+   " go 主要插件
+   Plug 'fatih/vim-go', { 'tag': '*' }
+   " go 中的代码追踪，输入 gd 就可以自动跳转
+   Plug 'dgryski/vim-godef'
+   
+   " markdown 插件
+   Plug 'iamcco/mathjax-support-for-mkdp'
+   Plug 'iamcco/markdown-preview.vim'
+   
+   " 插件结束的位置，插件全部放在此行上面
+   call plug#end()
+   
+   
+   "==============================================================================
+   " 主题配色 
+   "==============================================================================
+   
+   " 开启24bit的颜色，开启这个颜色会更漂亮一些
+   set termguicolors
+   " 配色方案, 可以从上面插件安装中的选择一个使用 
+   colorscheme one " 主题
+   set background=dark " 主题背景 dark-深色; light-浅色
+   
+   
+   "==============================================================================
+   " vim-go 插件
+   "==============================================================================
+   let g:go_fmt_command = "goimports" " 格式化将默认的 gofmt 替换
+   let g:go_autodetect_gopath = 1
+   let g:go_list_type = "quickfix"
+   
+   let g:go_version_warning = 1
+   let g:go_highlight_types = 1
+   let g:go_highlight_fields = 1
+   let g:go_highlight_functions = 1
+   let g:go_highlight_function_calls = 1
+   let g:go_highlight_operators = 1
+   let g:go_highlight_extra_types = 1
+   let g:go_highlight_methods = 1
+   let g:go_highlight_generate_tags = 1
+   
+   let g:godef_split=2
+   
+   
+   "==============================================================================
+   " NERDTree 插件
+   "==============================================================================
+   
+   " 打开和关闭NERDTree快捷键
+   map <F10> :NERDTreeToggle<CR>
+   " 显示行号
+   let NERDTreeShowLineNumbers=1
+   " 打开文件时是否显示目录
+   let NERDTreeAutoCenter=1
+   " 是否显示隐藏文件
+   let NERDTreeShowHidden=0
+   " 设置宽度
+   " let NERDTreeWinSize=31
+   " 忽略一下文件的显示
+   let NERDTreeIgnore=['\.pyc','\~$','\.swp']
+   " 打开 vim 文件及显示书签列表
+   let NERDTreeShowBookmarks=2
+   
+   " 在终端启动vim时，共享NERDTree
+   let g:nerdtree_tabs_open_on_console_startup=1
+   
+   
+   "==============================================================================
+   "  majutsushi/tagbar 插件
+   "==============================================================================
+   
+   " majutsushi/tagbar 插件打开关闭快捷键
+   nmap <F9> :TagbarToggle<CR>
+   
+   let g:tagbar_type_go = {
+       \ 'ctagstype' : 'go',
+       \ 'kinds'     : [
+           \ 'p:package',
+           \ 'i:imports:1',
+           \ 'c:constants',
+           \ 'v:variables',
+           \ 't:types',
+           \ 'n:interfaces',
+           \ 'w:fields',
+           \ 'e:embedded',
+           \ 'm:methods',
+           \ 'r:constructor',
+           \ 'f:functions'
+       \ ],
+       \ 'sro' : '.',
+       \ 'kind2scope' : {
+           \ 't' : 'ctype',
+           \ 'n' : 'ntype'
+       \ },
+       \ 'scope2kind' : {
+           \ 'ctype' : 't',
+           \ 'ntype' : 'n'
+       \ },
+       \ 'ctagsbin'  : 'gotags',
+       \ 'ctagsargs' : '-sort -silent'
+   \ }
+   
+   "==============================================================================
+   "  Valloric/YouCompleteMe 插件
+   "==============================================================================
+   
+   " make YCM compatible with UltiSnips (using supertab)
+   let g:ycm_key_list_select_completion = ['<C-n>', '<space>']
+   let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>']
+   let g:SuperTabDefaultCompletionType = '<C-n>'
+   
+   " better key bindings for UltiSnipsExpandTrigger
+   let g:UltiSnipsExpandTrigger = "<tab>"
+   let g:UltiSnipsJumpForwardTrigger = "<tab>"
+   let g:UltiSnipsJumpBackwardTrigger = "<s-tab>"
+   
+   
+   "==============================================================================
+   "  其他插件配置
+   "==============================================================================
+   
+   " markdwon 的快捷键
+   map <silent> <F5> <Plug>MarkdownPreview
+   map <silent> <F6> <Plug>StopMarkdownPreview
+   
+   " tab 标签页切换快捷键
+   :nn <Leader>1 1gt
+   :nn <Leader>2 2gt
+   :nn <Leader>3 3gt
+   :nn <Leader>4 4gt
+   :nn <Leader>5 5gt
+   :nn <Leader>6 6gt
+   :nn <Leader>7 7gt
+   :nn <Leader>8 8gt
+   :nn <Leader>9 8gt
+   :nn <Leader>0 :tablast<CR>
+   ~~~
+
+   
