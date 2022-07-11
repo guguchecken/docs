@@ -556,9 +556,49 @@
 - 【推荐】对于channel的使用，划分角色为sender和receiver，channel只能由sender进行关闭。按照不同情况推荐：
 
   - 一个sender，N个receiver：channel应只能由sender进行关闭
-  - N个sender，一个receiver：创建一个信号channel，由receiver通知sender停止发送消息
-  - N个sender，M个receiver：应该创建一个一个主持人来进行channel的关闭。
-  - 更多变体详见[文章](https://go101.org/article/channel-closing.html)
+  
+  - N个sender，一个receiver：应使用context控制sender和reader的读写操作，channel的回收交由GC来进行处理
+  
+  - N个sender，M个receiver：同上。
+  
+    ~~~go
+    ctx, cancel := context.WithCancel(context.Background())
+    ch := make(chan int)
+    
+    //N senders
+    for i := 0; i < 8; i++ {
+        i := i
+        go func() {
+            for {
+                select {
+                    case <-ctx.Done():
+                    return
+                    case ch <- i:
+    
+                    }
+            }
+        }()
+    }
+    
+    //M receivers
+    for i := 0; i < 8; i++ {
+        go func() {
+            for {
+                select {
+                    case <-ctx.Done():
+                    return
+                    case i := <-ch:
+                    fmt.Printf("i: %v\n", i)
+                }
+            }
+        }()
+    }
+    
+    time.Sleep(time.Second)
+    cancel()
+    ~~~
+  
+    
 
 
 ### Mutex
@@ -964,6 +1004,8 @@
 
 5. 插件安装完成后，`control+shift+p`，然后搜索`Go:Install/Update Tools`，全选所有选项，OK
 
+6. 设置中搜索`Go: Lint Tool` 选择`staticcheck`作为默认静态检查工具; `Go: Format Tool`选择`gofmt`作为默认格式化工具
+
 #### GoLand
 
 1. 下载GoLand安装包
@@ -998,54 +1040,6 @@
    touch .vimrc
    ~~~
 
-3. 进行简单配置
-
-   ~~~bash
-   
-   "==============================================================================
-   " vim 内置配置 
-   "==============================================================================
-   
-   " 设置 vimrc 修改保存后立刻生效，不用在重新打开
-   " 建议配置完成后将这个关闭
-   autocmd BufWritePost $MYVIMRC source $MYVIMRC
-   
-   " 关闭兼容模式
-   set nocompatible
-   
-   set nu " 设置行号
-   set cursorline "突出显示当前行
-   " set cursorcolumn " 突出显示当前列
-   set showmatch " 显示括号匹配
-   
-   " tab 缩进
-   set tabstop=4 " 设置Tab长度为4空格
-   set shiftwidth=4 " 设置自动缩进长度为4空格
-   set autoindent " 继承前一行的缩进方式，适用于多行注释
-   
-   " 定义快捷键的前缀，即<Leader>
-   let mapleader=";" 
-   
-   " ==== 系统剪切板复制粘贴 ====
-   " v 模式下复制内容到系统剪切板
-   vmap <Leader>c "+yy
-   " n 模式下复制一行到系统剪切板
-   nmap <Leader>c "+yy
-   " n 模式下粘贴系统剪切板的内容
-   nmap <Leader>v "+p
-   
-   " 开启实时搜索
-   set incsearch
-   " 搜索时大小写不敏感
-   set ignorecase
-   syntax enable
-   syntax on                    " 开启文件类型侦测
-   filetype plugin indent on    " 启用自动补全
-   
-   " 退出插入模式指定类型的文件自动保存
-   au InsertLeave *.go,*.sh,*.php write
-   ~~~
-
 4. 安装vim-plug插件
 
    ~~~bash
@@ -1053,119 +1047,9 @@
        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
    ~~~
 
-5. 添加开发所需插件
+4. 编辑配置文件
 
    ~~~bash
-   " 插件开始的位置
-   call plug#begin('~/.vim/plugged')
-   
-   " Shorthand notation; fetches https://github.com/junegunn/vim-easy-align
-   " 可以快速对齐的插件
-   Plug 'junegunn/vim-easy-align'
-   
-   " 用来提供一个导航目录的侧边栏
-   Plug 'scrooloose/nerdtree'
-   
-   " 可以使 nerdtree 的 tab 更加友好些
-   Plug 'jistr/vim-nerdtree-tabs'
-   
-   
-   " 查看当前代码文件中的变量和函数列表的插件，
-   " 可以切换和跳转到代码中对应的变量和函数的位置
-   Plug 'majutsushi/tagbar'
-   
-   " 自动补全括号的插件，包括小括号，中括号，以及花括号
-   Plug 'jiangmiao/auto-pairs'
-   
-   " Vim状态栏插件，包括显示行号，列号，文件类型，文件名，以及Git状态
-   Plug 'vim-airline/vim-airline'
-   
-   
-   " 代码自动完成，安装完插件还需要额外配置才可以使用
-   Plug 'Valloric/YouCompleteMe'
-   
-   " 下面两个插件要配合使用，可以自动生成代码块
-   Plug 'SirVer/ultisnips'
-   Plug 'honza/vim-snippets'
-   
-   " 可以在 vim 中使用 tab 补全
-   "Plug 'vim-scripts/SuperTab'
-   
-   " 可以在 vim 中自动完成
-   "Plug 'Shougo/neocomplete.vim'
-   
-   
-   " 配色方案
-   " colorscheme neodark
-   Plug 'KeitaNakamura/neodark.vim'
-   " colorscheme monokai
-   Plug 'crusoexia/vim-monokai'
-   " colorscheme github 
-   Plug 'acarapetis/vim-colors-github'
-   " colorscheme one 
-   Plug 'rakr/vim-one'
-   
-   " go 主要插件
-   Plug 'fatih/vim-go', { 'tag': '*' }
-   " go 中的代码追踪，输入 gd 就可以自动跳转
-   Plug 'dgryski/vim-godef'
-   
-   " markdown 插件
-   Plug 'iamcco/mathjax-support-for-mkdp'
-   Plug 'iamcco/markdown-preview.vim'
-   
-   " 插件结束的位置，插件全部放在此行上面
-   call plug#end()
-   ~~~
-
-   然后输入 `:w` 保存配置，再输入 `:PlugInstall`进行插件的安装
-
-   如果想要删除插件，只要将不需要的插件注释或者删除，执行 `:PlugClean` 就可以自动清理了
-
-6. 插件配置
-
-   - vim-go: 需在vim中执行 `:GoInstallBinaries`
-
-   - 安装tagbar依赖（ctags）
-
-     ~~~bash
-     sudo apt install exuberant-ctags
-     ~~~
-
-   - YouCompleteMe: 
-
-     1. 安装依赖关系: 
-
-        ~~~bash
-        sudo apt install build-essential cmake python3-dev
-        #若报错，按照报错提示进行处理即可
-        ~~~
-     
-     2. 编译
-     
-        ~~~bash
-        cd ~/.vim/plugged/YouCompleteMe
-        # 编译，并加入 go 的支持
-        python3 install.py --go-completer 
-        ~~~
-     
-     3. 配置和 `SirVer/ultisnips` 冲突的快捷键
-     
-        ~~~bash
-        let g:ycm_key_list_select_completion = ['<C-n>', '<space>']
-        let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>']
-        let g:SuperTabDefaultCompletionType = '<C-n>'
-        
-        " better key bindings for UltiSnipsExpandTrigger
-        let g:UltiSnipsExpandTrigger = "<tab>"
-        let g:UltiSnipsJumpForwardTrigger = "<tab>"
-        let g:UltiSnipsJumpBackwardTrigger = "<s-tab>"
-        ~~~
-
-7. 完整的配置文件
-
-   ~~~bash
-   
    "==============================================================================
    " vim 内置配置 
    "==============================================================================
@@ -1394,4 +1278,33 @@
    :nn <Leader>0 :tablast<CR>
    ~~~
 
-   
+   然后输入 `:w` 保存配置，再输入 `:PlugInstall`进行插件的安装
+
+   如果想要删除插件，只要将不需要的插件注释或者删除，执行 `:PlugClean` 就可以自动清理了
+
+6. 插件配置
+
+   - vim-go: 需在vim中执行 `:GoInstallBinaries`
+
+   - 安装tagbar依赖（ctags）
+
+     ~~~bash
+     sudo apt install exuberant-ctags
+     ~~~
+
+   - YouCompleteMe: 
+
+     1. 安装依赖关系: 
+
+        ~~~bash
+        sudo apt install build-essential cmake python3-dev
+        #若报错，按照报错提示进行处理即可
+        ~~~
+     
+     2. 编译
+     
+        ~~~bash
+        cd ~/.vim/plugged/YouCompleteMe
+        # 编译，并加入 go 的支持
+        python3 install.py --go-completer 
+        ~~~
