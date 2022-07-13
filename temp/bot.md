@@ -43,4 +43,4 @@ pull_request_rules:
 
 
 
-针对label的添加与删除需求，mergify并不能很好的满足需求，其针对label的操作，需要在conditions部分设置条件触发，才能进行相应的label的添加与删除。触发的条件有限，常用的比如：size标签的
+针对label的添加与删除需求，mergify并不能很好的满足需求，其针对label的操作，需要在conditions部分设置条件触发，才能进行相应的label的添加与删除。触发的条件有限，常用的比如size标签相关操作不支持
