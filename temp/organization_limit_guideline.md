@@ -2,9 +2,9 @@
 
 ## 1. 创建team
 
-已有`matrixonebase`，跳过
+已有`matrixbase`，跳过
 
-## 2. 将team加入到指定仓库并设置权限
+## 2. 将team(`matrixbase`)加入到指定仓库并设置权限
 
 - 进入仓库settings界面
 
@@ -14,7 +14,7 @@
 
   ![cat](.imgs/%E6%B5%81%E7%A8%8B/cat.png)
 
-- 搜索team (matrixonebase)，并设置相应的权限（Triage）
+- **搜索team (`matrixbase`)，并设置相应的权限（Triage）**
 
 ## 3. 设置组织`Base permissions`
 
