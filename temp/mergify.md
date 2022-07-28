@@ -4,7 +4,7 @@
 
 上图显示的type of PR，其中`API-change`，`BUG`，`Improvement`，`Documentation`，`Feature`，`Code Refactoring`都已经有了对应的labels。
 
-需新建label <font color='red'>kind/test</font>，使其对应`Test and CI`
+需新建label `kind/test`，使其对应`Test and CI`
 
 ## Mergify文件
 
