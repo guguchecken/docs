@@ -16,7 +16,6 @@ queue_rules:
 pull_request_rules:
   - name: Automatic merge on approval
     conditions:
-      - base=main
       - "#approved-reviews-by>=1"
       - "check-success=Lint Docs"
       - "check-success=UT Test on Ubuntu/x64"
